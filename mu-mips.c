@@ -320,10 +320,31 @@ void handle_instruction()
 		
 		
 	}
-
 		
-
 	RUN_FLAG = FALSE;
+
+
+	//here's the code I had started in here, if that's at all useful
+	/*
+	uint32_t instr = mem_read_32(CURRENT_STATE.PC);
+	printf("\nin handle instruction, 0x%08x\n", instr);
+	uint32_t opcode = instr >> 24;
+	printf("\nopcode, 0x%08x\n", opcode);
+
+	switch(opcode){
+		case 0x3c:
+			printf("\ninstruction 1\n");
+			break;
+		case 0x24:
+			printf("\ninstruction 2\n");
+			break;
+		default:
+			break;
+
+	}
+
+	NEXT_STATE.PC += 4;
+	*/ 
 }
 
 
@@ -356,6 +377,34 @@ void print_program(){
 /************************************************************/
 void print_instruction(uint32_t addr){
 	/*IMPLEMENT THIS*/
+	uint32_t instr = mem_read_32(addr);
+	uint32_t opcode = instr >> 26;
+	printf("\nopcode, 0x%08x\n", opcode);
+	uint32_t s_opcode;
+
+	//printf("\nspecial test, 0x%08x\n", s_opcode);
+
+	switch(opcode){
+		case 0://special
+			s_opcode = instr & 0x3F;
+			int rd = (instr >> 11) & 0x1F;
+			int rt = (instr >> 16) & 0x1F;
+			int rs = (instr >> 21) & 0x1F;
+			switch(s_opcode):
+				case 0x20:
+				printf("ADD %d, %d, %d
+					
+				
+			
+			break;
+		case 0x:
+			printf("\ninstruction 2\n");
+			break;
+		default:
+			break;
+
+	}
+	
 }
 
 /***************************************************************/
