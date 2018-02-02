@@ -305,46 +305,256 @@ void load_program() {
 /************************************************************/
 void handle_instruction()
 {
-	int i, j, word;
+	int i, word, j = 0, specflag = 1;
 	uint32_t address;
 	/*IMPLEMENT THIS*/
 	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
-	
+//	int oparray[6];
+
 	for( i=1; i<=32; i++){ 
 		address = MEM_TEXT_BEGIN + j;
 		word = mem_read_32(address);
-		printf("Running instruction %d: 0x%08x \n", i, word );
+		printf("\nRunning instruction %d: 0x%08x \n", i, word );
+		
+		
+	
+	
+
+		//here's the code I had started in here, if that's at all useful
+	
+//		uint32_t instr = mem_read_32(CURRENT_STATE.PC);
+//		printf("In handle instruction, 0x%08x\n", word);
+		uint32_t opcode = word >> 24;
+		if (opcode == 0x00){
+			printf("This is a special opcode\n");
+			specflag = 1;
+			opcode = word << 24;
+			printf("Special opcode: 0x%2x\n", opcode);
+		}else
+			printf("Opcode, 0x%02x\n", opcode);
+	
+
+		switch(opcode){
+			//ADD & ADDI			
+			case 0x20:
+			case 0x20000000:
+				if(specflag == 1)
+				printf("ADD\n");
+				else 
+				printf("ADDI\n");
+				break;
+
+			//ADDU & ADDIU
+			case 0x21:
+				if(specflag == 1)
+				printf("ADDU\n");
+				else
+				printf("ADDIU\n");
+				break;
+
+			//SUB
+			case 0x22:
+				if(specflag ==1)
+				printf("SUB\n");
+				break;
+
+			//SUBU
+			case 0x23:
+				if(specflag == 1)
+				printf("SUBU\n");
+				break;
+
+			//MULT & BLEZ
+			case 0x18:
+				if(specflag ==1)
+				printf("MULT\n");
+				else
+				printf("BLEZ\n");
+				break;
+
+			//MULTU
+			case 0x19:
+				if(specflag == 1)
+				printf("MULTU\n");
+				break;
+
+			//DIV
+			case 0x1A:
+				if(specflag == 1)
+				printf("DIV\n");
+				break;
+
+			//DIVU
+			case 0x1B:
+				if(specflag ==1)
+				printf("DIVU\n");
+				break;
+
+			//AND
+			case 0x24:
+				if(specflag == 1)
+				printf("AND\n");
+				break;
+
+			//ANDI
+			case 0x30:
+				printf("ANDI\n");
+				break;
+
+			//OR	
+			case 0x25:
+				if(specflag == 1)
+				printf("OR\n");
+				break;
+				
+			//ORI
+			case 0x34:
+				printf("ORI\n");
+				break;
+
+			//XOR
+			case 0x26:
+				if(specflag == 1)
+				printf("XOR\n");
+				break;
+
+			//XORI
+			case 0x38:
+				printf("XORI\n");
+				break;
+
+			//NOR
+			case 0x27:
+				if(specflag == 1)
+				printf("NOR\n");
+				break;
+
+			//SLT
+			case 0x2A:
+				if(specflag == 1)
+				printf("SLT\n");
+				break;
+
+			//SLTI
+			case 0x28:
+				printf("SLTI\n");
+				break;
+
+			//SLL
+			case 0x00:
+				if(specflag == 1)
+				printf("SLL\n");
+				break;
+
+			//SRL
+			case 0x02:
+				if(specflag == 1)
+				printf("SRL\n");
+				break;
+
+			//SRA
+			case 0x03:
+				if(specflag == 1)
+				printf("SRA\n");
+				break;
+
+			//LW
+			case 0x8c:
+				printf("LW\n");
+				break;
+
+			//LB
+			case 0x80:
+				printf("LB\n");
+				break;
+
+			//LH
+			case 0x88:
+				printf("LH\n");
+				break;
+			//LUI
+			case 0x3c:
+				printf("LUI\n");
+				break;
+			//SW
+			case 0xac:
+				printf("SW\n");
+				break;
+			//SB
+			case 0xA0:
+				printf("SB\n");
+				break;
+			//SH
+			case 0xA4:
+				printf("SH\n");
+			//MFHI & BEQ
+			case 0x10:
+				if(specflag == 1)
+				printf("MFHI\n");
+				else
+				printf("BEQ\n");
+				break;
+			//MFLO
+			case 0x12:
+				if(specflag == 1)
+				printf("MFLO\n");
+				break;
+			//MTHI
+			case 0x11:
+				if(specflag ==1)
+				printf("MTHI\n");
+				break;		
+			//MTLO
+			case 0x13:
+				if(specflag ==1)
+				printf("MTLO\n");
+				break;
+			//BNE
+			case 0x14:
+				printf("BNE\n");
+				break;
+			//BLTZ or BGEZ
+			case 0x04:
+				printf("BLTZ or BGEZ\n");
+				break;	
+			//BGTZ
+			case 0x1C:
+				printf("BGTZ\n");
+				break;
+			//J
+			case 0x08:
+				if(specflag == 1)
+				printf("JR\n");
+				else
+				printf("J\n");
+				break;
+			//JAL or SYSCALL
+			case 0x0c:
+				if(specflag == 1)
+				printf("SYSCALL\n");
+				else
+				printf("JAL\n");
+				break;
+			//JALR
+			case 0x09:
+				if(specflag ==1)
+				printf("JALR\n");
+				break;
+			//SYSCALL
+			
+			default:
+				break;
+	
+		}
+
+//		NEXT_STATE.PC += 4;
+	
+
 		j += 4;
 
-		//determine if "special" or opcode, special 31>>26 == 00000, else opcode
-		
-		
+		specflag = 0;
+		RUN_FLAG = FALSE;
 	}
-		
-	RUN_FLAG = FALSE;
-
-
-	//here's the code I had started in here, if that's at all useful
-	/*
-	uint32_t instr = mem_read_32(CURRENT_STATE.PC);
-	printf("\nin handle instruction, 0x%08x\n", instr);
-	uint32_t opcode = instr >> 24;
-	printf("\nopcode, 0x%08x\n", opcode);
-
-	switch(opcode){
-		case 0x3c:
-			printf("\ninstruction 1\n");
-			break;
-		case 0x24:
-			printf("\ninstruction 2\n");
-			break;
-		default:
-			break;
-
-	}
-
-	NEXT_STATE.PC += 4;
-	*/ 
 }
 
 
@@ -377,6 +587,7 @@ void print_program(){
 /************************************************************/
 void print_instruction(uint32_t addr){
 	/*IMPLEMENT THIS*/
+	/*
 	uint32_t instr = mem_read_32(addr);
 	uint32_t opcode = instr >> 26;
 	printf("\nopcode, 0x%08x\n", opcode);
@@ -404,7 +615,7 @@ void print_instruction(uint32_t addr){
 			break;
 
 	}
-	
+	*/
 }
 
 /***************************************************************/
