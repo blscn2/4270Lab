@@ -590,32 +590,181 @@ void print_instruction(uint32_t addr){
 	/*
 	uint32_t instr = mem_read_32(addr);
 	uint32_t opcode = instr >> 26;
-	printf("\nopcode, 0x%08x\n", opcode);
-	uint32_t s_opcode;
+	//printf("\nopcode, 0x%02x\n", opcode);
+	uint32_t s_opcode = instr & 0x3F; //get's special op;
 
-	//printf("\nspecial test, 0x%08x\n", s_opcode);
+	//instruction registers
+	int rd  = (instr >> 11) & 0x1F;
+	int rt = (instr >> 16) & 0x1F;
+	int rs = (instr >> 21) & 0x1F;
+	int im = instr & 0xFFFF;
+	int off = instr & 0xFFFF;
+	int r_opcode = rt; //regimm id
+	int tar = instr & 0x2FFFFFF; //target
+	int base = rs;
+	int sa = (instr >> 6) & 0x1F;
+	int code = (instr >> 6) & 0xFFFFF;
 
 	switch(opcode){
 		case 0://special
-			s_opcode = instr & 0x3F;
-			int rd = (instr >> 11) & 0x1F;
-			int rt = (instr >> 16) & 0x1F;
-			int rs = (instr >> 21) & 0x1F;
-			switch(s_opcode):
-				case 0x20:
-				printf("ADD %d, %d, %d
-					
-				
-			
+			switch(s_opcode){
+				case 0: //SLL
+					printf("SLL %d, %d, %d\n", rd, rt, sa);
+					break;
+				case 2: //SRL
+					printf("SRL %d, %d, %d\n", rd, rt, sa);
+					break;
+				case 3: //SRA
+					printf("SRA %d, %d, %d\n", rd, rt, sa);
+					break;
+				case 8: //JR
+					printf("JR %d\n", rs);
+					break;
+				case 9: //JALR
+					if(rd==31){
+						printf("JALR %d\n", rs);
+					}else
+						printf("JALR %d, %d\n", rd, rs);
+					break;
+				case 12: //SYSCALL
+					printf("SYSCALL\n");
+					break;
+				case 16: //MFHI
+					printf("MFHI %d\n", rd);
+					break;
+				case 17: //MTHI
+					printf("MTHI %d\n", rs);
+					break;
+				case 18: //MFLO
+					printf("MFLO %d\n", rd);
+					break;
+				case 19: //MTLO
+					printf("MTLO %d\n", rs);
+					break;
+				case 24: //MULT
+					printf("MULT %d, %d\n", rs, rt);
+					break;
+				case 25: //MULTU
+					printf("MULTU %d, %d\n", rs, rt);
+					break;
+				case 26: //DIV
+					printf("DIV %d, %d\n", rs, rt);
+					break;
+				case 27: //DIVU
+					printf("DIVU %d, %d\n", rs, rt);
+					break;
+				case 32: //ADD
+					printf("ADD %d, %d, %d\n", rd, rs, rt);
+					break;
+				case 33: //ADDU
+					printf("ADDU %d, %d, %d\n", rd, rs, rt);
+					break;
+				case 34: //SUB
+					printf("SUB %d, %d, %d\n", rd, rs, rt);
+					break;
+				case 35: //SUBU
+					printf("SUBU %d, %d, %d\n", rd, rs, rt);
+					break;
+				case 36: //AND
+					printf("AND %d, %d, %d\n", rd, rs, rt);
+					break;
+				case 37: //OR
+					printf("OR %d, %d, %d\n", rd, rs, rt);
+					break;
+				case 38: //XOR
+					printf("XOR %d, %d, %d\n", rd, rs, rt);
+					break;
+				case 39: //NOR
+					printf("NOR %d, %d, %d\n", rd, rs, rt);
+					break;
+				case 42: //SLT
+					printf("SLT %d, %d,%d\n", rd, rs, rt);
+					break;
+				default:
+					break;
+			}
 			break;
-		case 0x:
-			printf("\ninstruction 2\n");
+
+		case 1: //REGIMM
+			switch(r_opcode){
+				case 0: //BLTZ
+					printf("BLTZ %d, %d\n", rs, off);
+					break;
+				case 1: //BGEZ
+					printf("BGEZ %d, %d\n", rs, off);
+					break;
+
+				default:
+					break;
+			}
+			break;
+
+		case 2: //J
+			printf("J %d\n", tar);
+			break;
+		case 3: //JAL
+			printf("JAL %d\n", tar);
+			break;
+		case 4: //BEQ
+			printf("BEQ %d, %d, %d\n", rs, rt, off);
+			break;
+		case 5: //BNE
+			printf("BNE %d, %d, %d\n", rs, rt, off);
+			break;
+		case 6: //BLEZ
+			printf("BLEZ %d, %d\n", rs, off);
+			break;
+		case 7: //BGTZ
+			printf("BGTZ %d, %d\n", rs, off);
+			break;
+		case 8: //ADDI
+			printf("ADDI %d, %d, %d\n", rt, rs, im);
+			break;
+		case 9: //ADDIU
+			printf("ADDIU %d, %d, %d\n", rt, rs, im);
+			break;
+		case 10: //SLTI
+			printf("SLTI %d, %d, %d\n", rt, rs, im);
+			break;
+		case 12: //ANDI
+			printf("ANDI %d, %d, %d\n", rt, rs, im);
+			break;
+		case 13: //ORI
+			printf("ORI %d, %d, %d\n", rt, rs, im);
+			break;
+		case 14: //XOR
+			printf("XOR %d, %d, %d\n", rt, rs, im);
+			break;
+		case 15: //LUI
+			printf("LUI %d, %d\n", rt, im);
+			break;
+		case 32: //LB
+			printf("LB %d, %d(%d)\n", rt, off, base);
+			break;
+		case 33: //LH
+			printf("LF %d, %d(%d)\n", rt, off, base);
+			break;
+		case 35: //LW
+			printf("LW %d, %d(%d)\n", rt, off, base);
+			break;
+		case 40: //SB
+			printf("SB %d, %d(%d)\n", rt, off, base);
+			break;
+		case 41: //SH
+			printf("SH %d, %d(%d)\n", rt, off, base);
+			break;
+		case 43: //SW
+			printf("SW %d, %d(%d)\n", rt, off, base);
 			break;
 		default:
 			break;
 
 	}
+<<<<<<< 730909de5d22b5b5c45bd4923c51b35ad62c67e7
 	*/
+=======
+
+>>>>>>> Print_instruction complete
 }
 
 /***************************************************************/
