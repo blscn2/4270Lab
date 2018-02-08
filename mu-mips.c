@@ -305,46 +305,498 @@ void load_program() {
 /************************************************************/
 void handle_instruction()
 {
-	int i, j, word;
-	uint32_t address;
-	/*IMPLEMENT THIS*/
-	/* execute one instruction at a time. Use/update CURRENT_STATE and and NEXT_STATE, as necessary.*/
-	
-	for( i=1; i<=32; i++){ 
-		address = MEM_TEXT_BEGIN + j;
-		word = mem_read_32(address);
-		printf("Running instruction %d: 0x%08x \n", i, word );
-		j += 4;
-
-		//determine if "special" or opcode, special 31>>26 == 00000, else opcode
-		
-		
-	}
-		
-	RUN_FLAG = FALSE;
-
-
-	//here's the code I had started in here, if that's at all useful
-	/*
 	uint32_t instr = mem_read_32(CURRENT_STATE.PC);
-	printf("\nin handle instruction, 0x%08x\n", instr);
-	uint32_t opcode = instr >> 24;
-	printf("\nopcode, 0x%08x\n", opcode);
+	uint32_t opcode = instr >> 26;
+	
+	uint32_t s_opcode = instr & 0x3F; //gets special op;
+
+	//instruction registers
+	int rd  = (instr >> 11) & 0x1F;
+	int rt = (instr >> 16) & 0x1F;
+	int rs = (instr >> 21) & 0x1F;
+	int im = instr & 0xFFFF;
+	int off = instr & 0xFFFF;
+	int r_opcode = rt; //regimm id
+	int tar = instr & 0x3FFFFFF; //target
+	int base = rs;
+	int sa = (instr >> 6) & 0x1F;
+//	int code = (instr >> 6) & 0xFFFFF;
 
 	switch(opcode){
-		case 0x3c:
-			printf("\ninstruction 1\n");
+		case 0://special
+			switch(s_opcode){
+				case 0: //Shift left logical
+					printf("SLL\n");
+					uint32_t sllval;
+					
+					sllval = CURRENT_STATE.REGS[rt];
+					
+					NEXT_STATE.REGS[rd] = sllval << sa;
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 2: //Shift right logical
+					printf("SRL\n");
+					uint32_t srlval;
+					
+					srlval = CURRENT_STATE.REGS[rt];
+					
+					NEXT_STATE.REGS[rd] = srlval >> sa;
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 3: //Shift right arithmetic 
+					printf("SRA\n");
+					uint32_t sraval;
+					
+					sraval = CURRENT_STATE.REGS[rt];
+					
+					NEXT_STATE.REGS[rd] = sraval >> sa;
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 8: //Jump register
+					printf("JR\n");
+					uint32_t jrval;
+					
+					jrval = CURRENT_STATE.REGS[rs];
+					
+					NEXT_STATE.PC = jrval;
+					break;
+					
+				case 9: //Jump and link
+					printf("JALR\n");
+					int32_t jalrval;
+					
+					jalrval = CURRENT_STATE.REGS[rs];
+					
+					NEXT_STATE.REGS[rd] = CURRENT_STATE.PC += 4;
+					
+					NEXT_STATE.PC = jalrval;
+					break;
+					
+				case 12: //System call
+					printf("SYSCALL\n");
+					int32_t sysval;
+					
+					sysval = CURRENT_STATE.REGS[2];
+					
+					switch( sysval ){
+						case 0x0A:
+							exit(0);
+						default:
+							return;
+					}	
+					break;
+					
+				case 16: //Move from high
+					printf("MFHI\n");
+					int32_t mfhival;
+					
+					mfhival = NEXT_STATE.HI;
+					
+					NEXT_STATE.REGS[rd] = mfhival;
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 17: //Move to high
+					printf("MTHI\n");
+					int32_t mthival;
+					
+					mthival = CURRENT_STATE.REGS[rs];
+					
+					NEXT_STATE.HI = mthival;
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 18: //Move from low
+					printf("MFLO\n");
+					int32_t mfloval;
+					
+					mfloval = NEXT_STATE.LO;
+					
+					NEXT_STATE.REGS[rd] = mfloval;
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 19: //Move to low
+					printf("MTLO\n");
+					int32_t mtloval;
+					
+					mtloval = CURRENT_STATE.REGS[rs];
+					
+					NEXT_STATE.LO = mtloval;
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 24: //Multiply
+					printf("MULT\n");
+					int32_t mult1, mult2;
+					int64_t product;
+					
+					mult1 = CURRENT_STATE.REGS[rs];
+					mult2 = CURRENT_STATE.REGS[rd];
+					
+					product = mult1 * mult2;
+					
+					NEXT_STATE.HI = ( product >> 32);
+					NEXT_STATE.LO = ( product & 0xFFFFFFFF );
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 25: //Multiply unsigned
+					printf("MULTU\n");
+					uint32_t mult3, mult4;
+					uint64_t product2;
+					
+					mult3 = CURRENT_STATE.REGS[rs];
+					mult4 = CURRENT_STATE.REGS[rd];
+					
+					product2 = mult3 * mult4;
+					
+					NEXT_STATE.HI = ( product2 >> 32);
+					NEXT_STATE.LO = ( product2 & 0xFFFFFFFF );
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 26: //Divide
+					printf("DIV\n");
+					int32_t div1, div2, quotient1, remainder1;
+					
+					div1 = CURRENT_STATE.REGS[rs];
+					div2 = CURRENT_STATE.REGS[rt];
+					
+					quotient1 = div1 / div2;
+					remainder1 = div1 % div2;
+					
+					NEXT_STATE.HI = remainder1;
+					NEXT_STATE.LO = quotient1;
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 27: //Divide unsigned
+					printf("DIVU\n");
+					uint32_t div3, div4, quotient2, remainder2;
+					
+					div3 = CURRENT_STATE.REGS[rs];
+					div4 = CURRENT_STATE.REGS[rt];
+					
+					quotient2 = div3 / div4;
+					remainder2 = div3 % div4;
+					
+					NEXT_STATE.HI = remainder2;
+					NEXT_STATE.LO = quotient2;
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 32: //Add
+					printf("ADD\n");
+					int32_t rs_val, rt_val, sum;
+					rs_val = CURRENT_STATE.REGS[rs];
+					rt_val = CURRENT_STATE.REGS[rt];
+					
+					sum = rs_val + rt_val;
+					
+					NEXT_STATE.REGS[rd] = sum;
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 33: //Add unsigned
+					printf("ADDU\n");
+					
+					NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] + CURRENT_STATE.REGS[rt];
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 34: //Subtract
+					printf("SUB\n");
+					
+					NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 35: //Subtract unsigned
+					printf("SUBU\n");
+					
+					NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] - CURRENT_STATE.REGS[rt];
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 36: //AND
+					printf("AND\n");
+					
+					NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] & CURRENT_STATE.REGS[rt];
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 37: //OR
+					printf("OR\n");
+					
+					NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] | CURRENT_STATE.REGS[rt];
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 38: //XOR
+					printf("XOR\n");
+					
+					NEXT_STATE.REGS[rd] = CURRENT_STATE.REGS[rs] ^ CURRENT_STATE.REGS[rt];
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 39: //NOR
+					printf("NOR\n");
+					
+					NEXT_STATE.REGS[rd] = ~( CURRENT_STATE.REGS[rs] | CURRENT_STATE.REGS[rt] );
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				case 42: //Set on less than
+					printf("SLT\n");
+					
+					NEXT_STATE.REGS[rd] = ( CURRENT_STATE.REGS[rs] < CURRENT_STATE.REGS[rt] ) ? 1 : 0;
+					
+					NEXT_STATE.PC += 4;
+					break;
+					
+				default:
+					break;
+			}
 			break;
-		case 0x24:
-			printf("\ninstruction 2\n");
+
+		case 1: //REGIMM
+			switch(r_opcode){
+				case 0: //Branch on less than zero
+					printf("BLTZ\n");
+					if( CURRENT_STATE.REGS[rs] < 0x0 ){
+							NEXT_STATE.PC = NEXT_STATE.PC + 4 + off;
+					}	
+					break;
+					
+				case 1: //Branch on greater than or equal to
+					printf("BGEZ\n");
+					if( CURRENT_STATE.REGS[rs] >= 0x0 ){
+							NEXT_STATE.PC = NEXT_STATE.PC + 4 + off;
+					}		
+					break;
+
+				default:
+					break;
+			}
 			break;
+
+		case 2: //Jump
+			printf("J\n");
+			NEXT_STATE.PC = ( CURRENT_STATE.PC & 0xF0000000 ) | ( tar << 2 );
+			break;
+			
+		case 3: //Jump and link
+			printf("JAL\n");
+			NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
+			NEXT_STATE.PC = ( CURRENT_STATE.PC & 0xF0000000 ) | ( tar << 2 );
+			break;
+			
+		case 4: //Branch on equal
+			printf("BEQ\n");
+			uint32_t beq1 = CURRENT_STATE.REGS[rs];
+			uint32_t beq2 = CURRENT_STATE.REGS[rt];
+			
+			if( beq1 == beq2 ){
+				NEXT_STATE.PC = NEXT_STATE.PC + off;
+			}	
+			break;
+			
+		case 5: //Branch not equal
+			printf("BNE\n");
+			uint32_t bne1 = CURRENT_STATE.REGS[rs];
+			uint32_t bne2 = CURRENT_STATE.REGS[rt];
+			
+			if( bne1 != bne2 ){
+				NEXT_STATE.PC = NEXT_STATE.PC + off;
+			}	
+			break;
+			
+		case 6: //Branch on less than or equal to zero
+			printf("BLEZ\n");
+			uint32_t blez = CURRENT_STATE.REGS[rs];
+			
+			if( blez <= 0x0){
+				NEXT_STATE.PC = NEXT_STATE.PC + 4 + off;
+			}			
+			break;
+			
+		case 7: //Branch greater than zero
+			printf("BGTZ\n");
+			uint32_t bgtz = CURRENT_STATE.REGS[rs];
+			
+			if( bgtz >= 0x0){
+				NEXT_STATE.PC = NEXT_STATE.PC + 4 + off;
+			}	
+			break;
+			
+		case 8: //Add immediate
+			printf("ADDI\n");
+			int32_t addi = CURRENT_STATE.REGS[rs];
+			
+			NEXT_STATE.REGS[rt] = addi + im;
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
+		case 9: //Add immediate unsigned
+			printf("ADDIU\n");
+			uint32_t addiu = CURRENT_STATE.REGS[rs];
+			
+			NEXT_STATE.REGS[rt] = addiu + im;
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
+		case 10: //Set on less than immediate
+			printf("SLTI\n");
+			int32_t slti = CURRENT_STATE.REGS[rs];
+			
+			if( slti < im){
+				NEXT_STATE.REGS[rt] = 0x1;
+			}else{
+					NEXT_STATE.REGS[rt] = 0x0;
+			}
+				
+			NEXT_STATE.PC += 4;	
+			break;
+			
+		case 12: //ANDI
+			printf("ANDI\n");
+			uint32_t andi = CURRENT_STATE.REGS[rs];
+			
+			NEXT_STATE.REGS[rt] = andi & im;
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
+		case 13: //ORI
+			printf("ORI\n");
+			uint32_t ori = CURRENT_STATE.REGS[rs];
+			
+			NEXT_STATE.REGS[rt] = ori | im;
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
+		case 14: //XORI
+			printf("XOR\n");
+			uint32_t xori = CURRENT_STATE.REGS[rs];
+			
+			NEXT_STATE.REGS[rt] = xori ^ im;
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
+		case 15: //Load upper immediate
+			printf("LUI\n");
+			im <<= 16;
+			
+			NEXT_STATE.REGS[rt] = im;
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
+		case 32: //Load byte
+			printf("LB\n");
+			int32_t lb = CURRENT_STATE.REGS[base];
+			
+			int32_t lbaddress = lb + off;
+			
+			NEXT_STATE.REGS[rt] = 0xFF & mem_read_32( lbaddress );
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
+		case 33: //Load half
+			printf("LF\n");
+			int32_t lh = CURRENT_STATE.REGS[base];
+			
+			int32_t lhaddress = lh + off;
+			
+			NEXT_STATE.REGS[rt] = 0xFFF & mem_read_32( lhaddress );
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
+		case 35: //Load word
+			printf("LW\n");
+			int32_t lw = CURRENT_STATE.REGS[base];
+			
+			int32_t lwaddress = lw + off;
+			
+			NEXT_STATE.REGS[rt] = mem_read_32( lwaddress );
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
+		case 40: //Store byte
+			printf("SB");
+			int32_t sbval1 = CURRENT_STATE.REGS[base];
+			uint32_t sbval2 = CURRENT_STATE.REGS[rt];
+			
+			int32_t sbaddress = sbval1 + off;
+			
+			uint8_t sbval3 = 0xFF & sbval2;
+			
+			mem_write_32( sbaddress, sbval3 );
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
+		case 41: //Store half
+			printf("SH\n");
+			int32_t shval1 = CURRENT_STATE.REGS[base];
+			uint32_t shval2 = CURRENT_STATE.REGS[rt];
+			
+			int32_t shaddress = shval1 + off;
+			
+			uint8_t shval3 = 0xFFFF & shval2;
+			
+			mem_write_32( shaddress, shval3);
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
+		case 43: //Store word
+			printf("SW\n");
+			int32_t swval1 = CURRENT_STATE.REGS[base];
+			uint32_t swval2 = CURRENT_STATE.REGS[rt];
+			
+			int32_t swaddress = swval1 + off;
+			
+			mem_write_32( swaddress, swval2 );
+			
+			NEXT_STATE.PC += 4;
+			break;
+			
 		default:
 			break;
 
 	}
-
-	NEXT_STATE.PC += 4;
-	*/ 
+	
 }
 
 
@@ -377,6 +829,7 @@ void print_program(){
 /************************************************************/
 void print_instruction(uint32_t addr){
 	/*IMPLEMENT THIS*/
+	
 	uint32_t instr = mem_read_32(addr);
 	uint32_t opcode = instr >> 26;
 	//printf("\nopcode, 0x%02x\n", opcode);
@@ -392,7 +845,11 @@ void print_instruction(uint32_t addr){
 	int tar = instr & 0x2FFFFFF; //target
 	int base = rs;
 	int sa = (instr >> 6) & 0x1F;
+<<<<<<< HEAD
 	int code = (instr >> 6) & 0xFFFFF;
+=======
+//	int code = (instr >> 6) & 0xFFFFF;
+>>>>>>> update/Brent
 
 	switch(opcode){
 		case 0://special
