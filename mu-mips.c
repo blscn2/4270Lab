@@ -299,10 +299,7 @@ void load_program() {
 	printf("Program loaded into memory.\n%d words written into memory.\n\n", PROGRAM_SIZE);
 	fclose(fp);
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> lab2
 /************************************************************/
 /* Initialize Memory                                                                                                    */ 
 /************************************************************/
