@@ -327,6 +327,10 @@ void handle_pipeline()
 void WB()
 {
 	/*IMPLEMENT THIS*/
+	if(MEM_WB!=NULL){
+		
+	
+	}
 }
 
 /************************************************************/
@@ -335,6 +339,15 @@ void WB()
 void MEM()
 {
 	/*IMPLEMENT THIS*/
+	if(EX_MEM!=NULL){
+		if(EX_MEM.memType==0){  //load
+			MEM_WB.LMD = mem_read_32(EX_MEM.ALUOutput)
+		}
+		else if(EX_MEM.memType==1){ //store
+			mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
+		}
+	}
+	EX_MEM.memType=2; //resets for next instruction
 }
 
 /************************************************************/
@@ -361,6 +374,7 @@ void ID()
 		uint32_t opcode = mem_read_32(IF.IR)>>26;
 		uint32_t s_opcode = mem_read_32(IF.IR) & 0x3F; //get's special op
 		uint32_t r_opcode = (mem_read_32(IF.IR)>>16) & 0x1F;
+		int iType, S_Flag, ALU_Func;
 		if(opcode = 0){
 			S_Flag=1;
 			ALU_Func = s_opcode;
@@ -420,9 +434,10 @@ void ID()
 			case 10: //Slti
 				iType=2; //reg-imm
 				break;
-			
 			}
-		}	
+		}
+		IF_EX.iType=iType;
+		IF_EX.ALU_Func=ALU_Func;
 	}
 }
 
