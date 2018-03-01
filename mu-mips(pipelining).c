@@ -357,22 +357,72 @@ void ID()
 		IF_EX.IR=ID_IF.IR;
 		IF_EX.A=(mem_read_32(IF.IR)>>21) & 0x1F;
 		IF_EX.B=(mem_read_32(IF.IR)>>16) & 0x1F;
-		IF_EX.imm = mem_read_32(IF.IR) & 0xFFFF;
+		IF_EX.imm = (mem_read_32(IF.IR) & 0xFFFF);
 		uint32_t opcode = mem_read_32(IF.IR)>>26;
 		uint32_t s_opcode = mem_read_32(IF.IR) & 0x3F; //get's special op
 		uint32_t r_opcode = (mem_read_32(IF.IR)>>16) & 0x1F;
 		if(opcode = 0){
 			S_Flag=1;
 			ALU_Func = s_opcode;
+			switch(s_opcode){
+			case 16: //Mfhi
+			case 18: //Mflo
+			case 17: //Mthi
+			case 19: //Mtlo
+				iType=0;
+				break;
+			case 32: //Add
+			case 33: //Addu
+			case 34: //Sub
+			case 35: //Subu
+			case 24: //Mult
+			case 25: //Multu
+			case 26: //Div
+			case 27: //Divu
+			case 36: //And
+			case 37: //Or 
+			case 38: //Xor
+			case 39: //Nor
+			case 42: //Slt
+				iType=1; //reg-reg
+				break;
+			case 0: //Sll
+			case 2: //Srl
+			case 3: //Sra
+				iType=2; //reg-imm
+				break;
+			}
 		}
 		else if(opcode = 1){
 			S_Flag=2;
 			ALU_Func = r_opcode;
+			switch(r_opcode){
+			}
 		}
 		else{
 			S_Flag=0;
-			ALU_Func = opcode;	
-		}
+			ALU_Func = opcode;
+			switch(opcode){
+			case 35: //LW;
+			case 32: //LB
+			case 33: //LH;
+			case 15: //Lui
+			case 43: //Sw
+			case 40: //Sb
+			case 41: //Sh
+				iType=0; //mem
+				break;
+			case 8: //Addi
+			case 9: //Addiu
+			case 12: //Andi
+			case 13: //Ori
+			case 14: //Xori
+			case 10: //Slti
+				iType=2; //reg-imm
+				break;
+			
+			}
+		}	
 	}
 }
 
