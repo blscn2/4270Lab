@@ -357,7 +357,36 @@ void EX()
 {
 	
 	/*IMPLEMENT THIS*/
+	if( ID_EX.IR != NULL){
+		
+		EX_MEM.PC = ID_EX.PC
+		EX_MEM.IR = ID_EX.IR;
+		EX_MEM.A = ID_EX.A;
+		EX_MEM.B = ID_EX.B;
+		EX_MEM.imm = ID_EX.imm;
+		EX_MEM.iType = IF_EX.iType;
+		EX_MEM.memType = IF_EX.memType;
+
+		// memtype = 0 for load, 1 for store
+		if( EX_MEM.iType == 0){ // load/store
+		
+			EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+
+		}	
+		else if( EX_MEM.iType == 1){	//reg-reg
+			
+			// NEED TO DECODE OPERATION
+			EX_MEM.ALUOutput = ID_EX.A op ID_EX.B;
+
+		}
+		else if( EX_MEM.iType == 2){	//reg-immidiate
+
+			// NEED TO DECODE OPERATION
+			EX_MEM.ALUOutput = ID_EX.A op ID_EX.imm;
 	
+
+		}
+	}
 }
 
 /************************************************************/
