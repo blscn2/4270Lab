@@ -511,6 +511,23 @@ void print_program(){
 /************************************************************/
 void show_pipeline(){
 	/*IMPLEMENT THIS*/
+	printf("Current PC: %u\n", CURRENT_STATE.PC);
+	printf("IF_ID.IR: %u\n", IF_ID.IR);
+	printf("IF_ID.PC: %u\n", IF_ID.PC);
+	
+	printf("ID_EX.IR: %u\n", ID_EX.IR);
+	printf("ID_EX.A: %u\n", ID_EX.A);
+	printf("ID_EX.B: %u\n", ID_EX.B);
+	printf("ID_EX.imm: %u\n", ID_EX.imm);
+	       
+	printf("EX_MEM.IR: %u\n", EX_MEM.IR);
+	printf("EX_MEM.A: %u\n", EX_MEM.A);
+	printf("EX_MEM.B: %u\n", EX_MEM.B);
+	printf("EX_MEM.ALUOutput: %u\n", EX_MEM.ALUOutput);
+	       
+	printf("MEM_WB.IR: %u\n", MEM_WB.IR);
+	printf("MEM_WB.ALUOutput: %u\n", MEM_WB.ALUOutput);
+	printf("MEM_WB.LMD: %u\n", MEM_WB.LMD);
 }
 
 /***************************************************************/
