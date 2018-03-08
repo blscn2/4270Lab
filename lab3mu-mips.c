@@ -338,6 +338,7 @@ void WB()
 		else if( EX_MEM.iType == 2){	//reg-immidiate
 			CURRENT_STATE.REGS[MEM_WB.IR] = MEM_WB.ALUOutput;
 		}
+		INSTRUCTION_COUNTER++
 	}
 }
 
