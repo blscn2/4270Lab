@@ -353,7 +353,16 @@ void MEM()
 		MEM_WB.A = EX_MEM.A;
 		MEM_WB.B = EX_MEM.B;
 		MEM_WB.ALUOutput = EX_MEM.ALUOutput;
-	
+		MEM_WB.memType=EX_MEM.memType;
+		
+		if(EX_MEM.memType==0){  //load
+			MEM_WB.LMD = mem_read_32(EX_MEM.ALUOutput)
+		}
+		else if(EX_MEM.memType==1){ //store
+			mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);
+			}
+		}
+		EX_MEM.memType=2; //resets for next instruction
 	}
 }
 
