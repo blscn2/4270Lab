@@ -330,13 +330,13 @@ void WB()
 	if( MEM_WB.IR != NULL){
 	
 		if( EX_MEM.iType == 0){ // load
-			CURRENT_STATE.REGS[MEM_WB.IR[rt]] = MEM_WB.LMD;
+			CURRENT_STATE.REGS[MEM_WB.IR] = MEM_WB.LMD;
 		}
 		else if( EX_MEM.iType == 1){	//reg-reg
-			CURRENT_STATE.REGS[MEM_WB.IR[rd]] = MEM_WB.ALUOutput;
+			CURRENT_STATE.REGS[MEM_WB.IR] = MEM_WB.ALUOutput;
 		}
 		else if( EX_MEM.iType == 2){	//reg-immidiate
-			CURRENT_STATE.REGS[MEM_WB.IR[rd]] = MEM_WB.ALUOutput;
+			CURRENT_STATE.REGS[MEM_WB.IR] = MEM_WB.ALUOutput;
 		}
 	}
 }
