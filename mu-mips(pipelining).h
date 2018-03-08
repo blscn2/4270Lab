@@ -57,7 +57,7 @@ typedef struct CPU_Pipeline_Reg_Struct{
 	int memType;
 	int ALU_Func;
 	int S_Flag;
-	
+	uint32_t memspace;	
 } CPU_Pipeline_Reg;
 
 /***************************************************************/
