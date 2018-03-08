@@ -328,7 +328,16 @@ void WB()
 {
 	/*IMPLEMENT THIS*/
 	if( MEM_WB.IR != NULL){
-
+	
+		if( EX_MEM.iType == 0){ // load
+			CURRENT_STATE.REGS[MEM_WB.IR[rt]] = MEM_WB.LMD;
+		}
+		else if( EX_MEM.iType == 1){	//reg-reg
+			CURRENT_STATE.REGS[MEM_WB.IR[rd]] = MEM_WB.ALUOutput;
+		}
+		else if( EX_MEM.iType == 2){	//reg-immidiate
+			CURRENT_STATE.REGS[MEM_WB.IR[rd]] = MEM_WB.ALUOutput;
+		}
 	}
 }
 
@@ -338,7 +347,7 @@ void WB()
 void MEM()
 {
 	/*IMPLEMENT THIS*/
-	if( EX_MEM.IR != NULL ){
+	if(EX_MEM.IR != NULL ){
 		MEM_WB.IR = EX_MEM.IR;
 		MEM_WB.A = EX_MEM.A;
 		MEM_WB.B = EX_MEM.B;
