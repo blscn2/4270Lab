@@ -373,25 +373,131 @@ void EX()
 		EX_MEM.iType = IF_EX.iType;
 		EX_MEM.memType = IF_EX.memType;
 
-		// memtype = 0 for load, 1 for store
-		if( EX_MEM.iType == 0){ // load/store
-		
-			EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
-
-		}	
-		else if( EX_MEM.iType == 1){	//reg-reg
+		uint32_t opcode = mem_read_32(EX_MEM.IR)>>26;
+		uint32_t s_opcode = mem_read_32(EX_MEM.IR) & 0x3F; //get's special op
+		uint32_t r_opcode = (mem_read_32(EX_MEM.IR)>>16) & 0x1F;
+		if(opcode = 0){
+			EX_MEM.S_Flag=1;
+			EX_MEM.ALU_Func = s_opcode;
+			switch(s_opcode){
+			case 16: //Mfhi
+					EX_MEM.ALUOutput = CURRENT_STATE.HI;
+					break;
+			case 18: //Mflo
+					EX_MEM.ALUOutput = CURRENT_STATE.LO;
+					break;
+			case 17: //Mthi
+					EX_MEM.ALUOutput = CURRENT_STATE.HI;
+					break;
+			case 19: //Mtlo
+					EX_MEM.ALUOutput = CURRENT_STATE.LO;
+					break;
+			case 32: //Add
+					EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;
+					break;
+			case 33: //Addu
+					EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;
+					break;
+			case 34: //Sub
+					EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;
+					break;
+			case 35: //Subu
+					EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;
+					break;
+			case 24: //Mult
+					EX_MEM.ALUOutput = ID_EX.A * ID_EX.B;
+					break;
+			case 25: //Multu
+					EX_MEM.ALUOutput = ID_EX.A * ID_EX.B;
+					break;
+			case 26: //Div
+					EX_MEM.ALUOutput = ID_EX.A / ID_EX.B;
+					EX_MEM.LMD = ID_EX.A % ID_EX.B;
+					break;
+			case 27: //Divu
+					EX_MEM.ALUOutput = ID_EX.A / ID_EX.B;
+					EX_MEM.LMD = ID_EX.A % ID_EX.B;
+					break;
+			case 36: //And
+					EX_MEM.ALUOutput = ID_EX.A & ID_EX.B;
+					break;
+			case 37: //Or 
+					EX_MEM.ALUOutput = ID_EX.A | ID_EX.B;
+					break;
+			case 38: //Xor
+					EX_MEM.ALUOutput = ID_EX.A ^ ID_EX.B;
+					break;
+			case 39: //Nor
+					EX_MEM.ALUOutput = ~( ID_EX.A | ID_EX.B);
+					break;
+			case 42: //Slt
+					EX_MEM.ALUOutput - ( ID_EX.A < ID_EX.B) ? 1 : 0;
+				break;
+			case 0: //Sll
+					uint8_t sllval;
+					
+					sllval = ( EX_MEM.imm >> 6 ) & 0x1f;
+					
+					EX_MEM.ALUOutput = ID_EX.A << sllval;
+					break;
+			case 2: //Srl
+					uint8_t srlval;
+					
+					srlval = ( EX_MEM.imm >> 6 ) & 0x1f;
+					
+					EX_MEM.ALUOutput = ID_EX.A >> srlval;
+					break;
+			case 3: //Sra
+					uint8_t sraval;
+					
+					sraval = ( EX_MEM.imm >> 6 ) & 0x1f;
+					
+					EX_MEM.ALUOutput = ID_EX.A >> sraval;
+					break;
+			}
+		}
+		else if(opcode = 1){
+			EX_MEM.S_Flag=2;
+			EX_MEM.ALU_Func = r_opcode;
+			switch(r_opcode){
+			}
+		}
+		else{
+			EX_MEM.S_Flag=0;
+			EX_MEM.ALU_Func = opcode;
+			switch(opcode){
+			case 35: //LW;
+			case 32: //LB
+			case 33: //LH;
+			case 15: //Lui
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+				break;
+			case 43: //Sw
+			case 40: //Sb
+			case 41: //Sh
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+				break;
+			case 8: //Addi
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+				break;
+			case 9: //Addiu
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;
+				break;
+			case 12: //Andi
+				EX_MEM.ALUOutput = ID_EX.A & ID_EX.imm;
+				break;
+			case 13: //Ori
+				EX_MEM.ALUOutput = ID_EX.A | ID_EX.imm;
+				break;
+			case 14: //Xori
+				EX_MEM.ALUOutput = ID_EX.A ^ ID_EX.imm;
+				break;
+			case 10: //Slti
+				EX_MEM.ALUOutput = ( ID_EX.A < ID_EX.imm ) ? 0x1 : 0x0;
+				break;
 			
-			// NEED TO DECODE OPERATION
-			EX_MEM.ALUOutput = ID_EX.A op ID_EX.B;
-
-		}
-		else if( EX_MEM.iType == 2){	//reg-immidiate
-
-			// NEED TO DECODE OPERATION
-			EX_MEM.ALUOutput = ID_EX.A op ID_EX.imm;
-	
-
-		}
+			}
+		}	
 	}
 }
 
