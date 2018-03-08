@@ -329,13 +329,13 @@ void WB()
 	/*IMPLEMENT THIS*/
 	if( MEM_WB.IR != NULL){
 	
-		if( EX_MEM.iType == 0){ // load
+		if( MEM_WB.iType == 0){ // load
 			CURRENT_STATE.REGS[MEM_WB.IR] = MEM_WB.LMD;
 		}
-		else if( EX_MEM.iType == 1){	//reg-reg
+		else if( MEM_WB.iType == 1){	//reg-reg
 			CURRENT_STATE.REGS[MEM_WB.IR] = MEM_WB.ALUOutput;
 		}
-		else if( EX_MEM.iType == 2){	//reg-immidiate
+		else if( MEM_WB.iType == 2){	//reg-immidiate
 			CURRENT_STATE.REGS[MEM_WB.IR] = MEM_WB.ALUOutput;
 		}
 		INSTRUCTION_COUNTER++
@@ -354,6 +354,7 @@ void MEM()
 		MEM_WB.B = EX_MEM.B;
 		MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 		MEM_WB.memType=EX_MEM.memType;
+		MEM_WB.iType= EX_MEM.iType;
 		
 		if(EX_MEM.memType==0){  //load
 			MEM_WB.LMD = mem_read_32(EX_MEM.ALUOutput)
