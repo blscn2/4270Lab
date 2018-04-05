@@ -4,10 +4,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #define GET_OPCODE(x)		( ( x >> 26 ) & 0x3F )
-#define GET_RS(x)		( ( x >> 21 ) & 0x1F )
-#define GET_RT(x)		( ( x >> 16 ) & 0x1F )
-#define GET_RD(x)		( ( x >> 11 ) & 0x1F )
-#define GET_SA(x)		( ( x >> 6  ) & 0x1F )
+#define GET_RS(x)			( ( x >> 21 ) & 0x1F )
+#define GET_RT(x)			( ( x >> 16 ) & 0x1F )
+#define GET_RD(x)			( ( x >> 11 ) & 0x1F )
+#define GET_SA(x)			( ( x >> 6  ) & 0x1F )
 #define GET_FUNCTCODE(x)	( x & 0x3F )
 #define GET_IMM(x)		( x & 0xFFFF )
 #define GET_ADDRESS(x)		( x & 0x3FFFFFF )
@@ -16,8 +16,8 @@
 #define SET_FUNCTCODE(x, fc)    ( x |= ( fc ) )
 
 #define intr_lookup_limit	0x2C
-#define opcode_0x01_limit   	0x02
-#define opcode_0x00_limit   	0x2B
+#define opcode_0x01_limit   0x02
+#define opcode_0x00_limit   0x2B
 
 // project types
 typedef enum 
@@ -26,7 +26,7 @@ typedef enum
 	R_TYPE, 
 	I_TYPE, 
 	J_TYPE,
-	M_TYPE
+	M_TYPE     // subtable
 } inst_type_t;
 
 typedef enum

@@ -11,6 +11,7 @@ void instr_handler_SLL( CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM )
     
     sa = ( (*EX_MEM).imm >> 6 ) & 0x1F;
     
+    // Shift Left Logical Register Contents A by sa bits
 	(*EX_MEM).ALUOutput = (*ID_EX).A << sa;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -21,6 +22,7 @@ void instr_handler_SRL(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
     
     sa = ( (*EX_MEM).imm >> 6 ) & 0x1F;
     
+    // Shift Right Logical Register Contents A by sa bits
 	(*EX_MEM).ALUOutput = (*ID_EX).A >> sa;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -32,6 +34,7 @@ void instr_handler_SRA(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
     
     sa = ( (*EX_MEM).imm >> 6 ) & 0x1F;
     
+    // Shift Right Logical Register Contents A by sa bits
 	(*EX_MEM).ALUOutput = (int32_t)(*ID_EX).A >> sa;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -43,11 +46,14 @@ void instr_handler_JR()
 	int32_t rs_val;
 	uint8_t rs;
 
+	// Get instruction
 	instr = mem_read_32(CURRENT_STATE.PC);
 
+	// Get values
 	rs = GET_RS(instr);
 	rs_val = CURRENT_STATE.REGS[rs];
 
+	// jump to specified address
 	NEXT_STATE.PC = rs_val;
 }
 
@@ -58,14 +64,18 @@ void instr_handler_JALR()
 	int32_t rs_val;
 	uint8_t rs, rd;
 
+	// Get instruction
 	instr = mem_read_32( CURRENT_STATE.PC );
 
+	// Get values
 	rs = GET_RS( instr );
 	rd = GET_RD( instr );
 	rs_val = CURRENT_STATE.REGS[rs];
 
+	// save return addr
 	NEXT_STATE.REGS[rd] = CURRENT_STATE.PC + 4;
 
+	// jmp to new addr
 	NEXT_STATE.PC = rs_val;
 }
 
@@ -78,79 +88,106 @@ void instr_handler_SYSCALL(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 	v0_val = CURRENT_STATE.REGS[2];
 	a0_val = CURRENT_STATE.REGS[4];
 	switch( v0_val ) {
-		case 0x01:	printf("%d\n", a0_val);		
-		break;
-		case 0x0A:	WB(); RUN_FLAG = 0;			
-		break;
-		default:								
-		return;
+		case 0x01:	printf("%d\n", a0_val);		break;	// print integer
+		case 0x0A:	WB(); RUN_FLAG = 0;			break;	// exit program
+		default:								return;
 	}
 }
 
+
+//move from HI, to rd
 void instr_handler_MFHI(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	//set ALUOutput to the HI value
 	(*EX_MEM).ALUOutput = CURRENT_STATE.HI;
+	//set type as register
 	(*EX_MEM).Control = REGISTER_TYPE;
     
+	//WB will move ALUOutput to rd
 }
 
+//move to HI, from rs
 void instr_handler_MTHI(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	//set ALUOutput2 to rs
 	(*EX_MEM).ALUOutput2 = (int32_t)((int32_t)(*ID_EX).A);
+	//set ALUOutput to current low state to not get overwritten
 	(*EX_MEM).ALUOutput = CURRENT_STATE.LO;
+	//set type as special register
 	(*EX_MEM).Control = SPECIAL_REGISTER_TYPE;
     
+	//WB will move ALUOutput2 to HI
+	//WB will move ALUOutput  to LO
 }
 
+//move from LO, to rd
 void instr_handler_MFLO(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	//set ALUOutput to the LO value
 	(*EX_MEM).ALUOutput = CURRENT_STATE.LO;
+	//set type as register
 	(*EX_MEM).Control = REGISTER_TYPE;
     
+	//WB will move ALUOutput to rd
 }
 
+//move to LO, from rs
 void instr_handler_MTLO(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	//set ALUOutput to rs
 	(*EX_MEM).ALUOutput = (int32_t)((int32_t)(*ID_EX).A);
+	//set ALUOutput2 to current high state to not get overwritten
 	(*EX_MEM).ALUOutput2 = CURRENT_STATE.HI;
+	//set type as special register
 	(*EX_MEM).Control = SPECIAL_REGISTER_TYPE;
+	
+	//WB will move ALUOutput  to LO
+    //WB will move ALUOutput2 to HI
 }
 
 
 void instr_handler_MULT(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
 
+	// Multiply Register Contents A with Register Contents B - signed
 	int64_t Product = (int32_t)(*ID_EX).A * (int32_t)(*ID_EX).B;
+	(*EX_MEM).ALUOutput 	= (Product & 0xFFFFFFFF);	// Low state
+	(*EX_MEM).ALUOutput2 	= (Product >> 32);			// High state
 	(*EX_MEM).Control = SPECIAL_REGISTER_TYPE;
 }
 
 
 void instr_handler_MULTU(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Multiply Register Contents A with Register Contents B - unsigned
 	uint64_t Product = (*ID_EX).A * (*ID_EX).B;
-	(*EX_MEM).ALUOutput2 	= (Product >> 32);			
+	(*EX_MEM).ALUOutput 	= (Product & 0xFFFFFFFF);	// Low state
+	(*EX_MEM).ALUOutput2 	= (Product >> 32);			// High state
 	(*EX_MEM).Control = SPECIAL_REGISTER_TYPE;
 }
 
 
 void instr_handler_DIV(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
-	(*EX_MEM).ALUOutput 	= (int32_t)((int32_t)(*ID_EX).A / (int32_t)(*ID_EX).B);	
-	(*EX_MEM).ALUOutput2 	= (int32_t)((int32_t)(*ID_EX).A % (int32_t)(*ID_EX).B);	
+	// Divide Register Contents A by Register Contents B - signed
+	(*EX_MEM).ALUOutput 	= (int32_t)((int32_t)(*ID_EX).A / (int32_t)(*ID_EX).B);	// Low state
+	(*EX_MEM).ALUOutput2 	= (int32_t)((int32_t)(*ID_EX).A % (int32_t)(*ID_EX).B);	// High state
 	(*EX_MEM).Control = SPECIAL_REGISTER_TYPE;
 }
 
 
 void instr_handler_DIVU(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
-	(*EX_MEM).ALUOutput 	= (*ID_EX).A / (*ID_EX).B;	
-	(*EX_MEM).ALUOutput2 	= (*ID_EX).A % (*ID_EX).B;	
+	// Divide Register Contents A by Register Contents B - unsigned
+	(*EX_MEM).ALUOutput 	= (*ID_EX).A / (*ID_EX).B;	// Low state
+	(*EX_MEM).ALUOutput2 	= (*ID_EX).A % (*ID_EX).B;	// High state
 	(*EX_MEM).Control = SPECIAL_REGISTER_TYPE;
 }
 
 
 void instr_handler_ADD(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Add Register Contents A with Register Contents B - signed
 	(*EX_MEM).ALUOutput = (int32_t)((int32_t)(*ID_EX).A + (int32_t)(*ID_EX).B);
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -158,6 +195,7 @@ void instr_handler_ADD(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 
 void instr_handler_ADDU(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Add Register Contents A with Register Contents B - unsigned
 	(*EX_MEM).ALUOutput = (*ID_EX).A + (*ID_EX).B;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -165,6 +203,7 @@ void instr_handler_ADDU(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 
 void instr_handler_SUB(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Subtract Register Contents A with Register Contents B - signed
 	(*EX_MEM).ALUOutput = (int32_t)((int32_t)(*ID_EX).A - (int32_t)(*ID_EX).B);
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -172,6 +211,7 @@ void instr_handler_SUB(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 
 void instr_handler_SUBU(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Subtract Register Contents A with Register Contents B - unsigned
 	(*EX_MEM).ALUOutput = (*ID_EX).A - (*ID_EX).B;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -179,6 +219,7 @@ void instr_handler_SUBU(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 
 void instr_handler_AND(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// AND Register Contents A with Register Contents B
 	(*EX_MEM).ALUOutput = (*ID_EX).A & (*ID_EX).B;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -186,6 +227,7 @@ void instr_handler_AND(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 
 void instr_handler_OR(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// OR Register Contents A with Register Contents B
 	(*EX_MEM).ALUOutput = (*ID_EX).A | (*ID_EX).B;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -193,6 +235,7 @@ void instr_handler_OR(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 
 void instr_handler_XOR(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// XOR Register Contents A with Register Contents B
 	(*EX_MEM).ALUOutput = (*ID_EX).A ^ (*ID_EX).B;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -200,6 +243,7 @@ void instr_handler_XOR(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 
 void instr_handler_NOR(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// NOR Register Contents A with Register Contents B
 	(*EX_MEM).ALUOutput = ~((*ID_EX).A | (*ID_EX).B);
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -207,6 +251,7 @@ void instr_handler_NOR(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 
 void instr_handler_SLT(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Check if Register Contents A is less than Register Contents B
 	(*EX_MEM).ALUOutput = ((*ID_EX).A < (*ID_EX).B) ? 1 : 0;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
@@ -262,10 +307,14 @@ void instr_handler_JAL()
 	NEXT_STATE.PC = ( CURRENT_STATE.PC & 0xF0000000 ) | ( target << 2 );
 }
 
+
+//branch on equal
 void instr_handler_BEQ()
 {
+	//get the instruction
 	uint32_t instr = mem_read_32( CURRENT_STATE.PC );
 
+	//get registers and immiate from instr
 	uint8_t rs = GET_RS( instr );
 	uint8_t rt = GET_RT( instr );
 	int16_t imm = GET_IMM( instr );
@@ -273,6 +322,7 @@ void instr_handler_BEQ()
 	uint32_t rs_val = CURRENT_STATE.REGS[rs];
 	uint32_t rt_val = CURRENT_STATE.REGS[rt];
 
+	//if equal, branch
 	if( rs_val == rt_val )
 	{
 		NEXT_STATE.PC = ( CURRENT_STATE.PC + imm);
@@ -284,10 +334,14 @@ void instr_handler_BEQ()
 
 }
 
+
+//branch on not equal
 void instr_handler_BNE()
 {
+	//get the instruction
 	uint32_t instr = mem_read_32( CURRENT_STATE.PC );
 
+	//get registers and immiate from instr
 	uint8_t rs = GET_RS( instr );
 	uint8_t rt = GET_RT( instr );
 	int16_t imm = GET_IMM( instr );
@@ -305,15 +359,20 @@ void instr_handler_BNE()
 	}
 }
 
+
+//branch on less than or equal to zero
 void instr_handler_BLEZ()
 {
+	//get the instruction
 	uint32_t instr = mem_read_32( CURRENT_STATE.PC );
 
+	//get registers and immiate from instr
 	uint8_t rs = GET_RS( instr );
 	int16_t imm = GET_IMM( instr );
 
 	uint32_t rs_val = CURRENT_STATE.REGS[rs];
 
+	//if less than equal to zero, branch
 	if( rs_val <= 0x0 )
 	{
 		NEXT_STATE.PC = ( CURRENT_STATE.PC + imm);
@@ -325,15 +384,20 @@ void instr_handler_BLEZ()
 
 }
 
+
+//brnach on greater than or equal to zero
 void instr_handler_BGTZ()
 {
+	//get the instruction
 	uint32_t instr = mem_read_32( CURRENT_STATE.PC );
 
+	//get registers and immiate from instr
 	uint8_t rs = GET_RS( instr );
 	int16_t imm = GET_IMM( instr );
 
 	uint32_t rs_val = CURRENT_STATE.REGS[rs];
 
+	//if greater than equal to zero, branch
 	if( rs_val >= 0x0 )
 	{
 		NEXT_STATE.PC = ( CURRENT_STATE.PC + imm);
@@ -345,89 +409,126 @@ void instr_handler_BGTZ()
 }
 
 
+//add a registers value and an immiate - signed
 void instr_handler_ADDI(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Add Register Contents A with immiate - signed
 	(*EX_MEM).ALUOutput = (int32_t)((int32_t)(*ID_EX).A + (int32_t)(*ID_EX).imm);
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
 
 
+//add a registers value and an immiate - unsigned
 void instr_handler_ADDIU(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Add Register Contents A with immiate - unsigned
 	(*EX_MEM).ALUOutput = (*ID_EX).A + (*ID_EX).imm;
 	(*EX_MEM).Control = REGISTER_TYPE;
 
 }
 
+
+//set less then immiate - signed
 void instr_handler_SLTI(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Set output to 1 if Register Contents A is less than immiate
 	(*EX_MEM).ALUOutput = ((*ID_EX).A < (*ID_EX).imm) ? 0x1 : 0x0;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
 
+
+//and immiate
 void instr_handler_ANDI(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// AND Register Contents A with immiate
 	(*EX_MEM).ALUOutput = (*ID_EX).A & (*ID_EX).imm;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
 
+
+//or immiate
 void instr_handler_ORI(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// OR Register Contents A with immiate
 	(*EX_MEM).ALUOutput = (*ID_EX).A | (*ID_EX).imm;
 	(*EX_MEM).Control = REGISTER_TYPE;
 }
 
+
+//exclusive or immiate
 void instr_handler_XORI(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// XOR Register Contents A with immiate
 	(*EX_MEM).ALUOutput = (*ID_EX).A ^ (*ID_EX).imm;
 	(*EX_MEM).Control = REGISTER_TYPE;
 
 }
 
+
+//load upper immiate
 void instr_handler_LUI(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Shift immiate 16 bits
 	(*EX_MEM).ALUOutput = (*ID_EX).imm << 16;
 	(*EX_MEM).Control = REGISTER_TYPE;
 	
 }
 
+
+//load byte
 void instr_handler_LB(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Set address to Register Contents A + immiate
 	(*EX_MEM).ALUOutput = (*ID_EX).A + (*ID_EX).imm;
 	(*EX_MEM).Control = LOAD_TYPE;
 	(*EX_MEM).num_bytes = BYTE;
 }
 
+
+//load halfword
 void instr_handler_LH(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Set address to Register Contents A + immiate
 	(*EX_MEM).ALUOutput = (*ID_EX).A + (*ID_EX).imm;
 	(*EX_MEM).Control = LOAD_TYPE;
 	(*EX_MEM).num_bytes = HALF_WORD;
 }
 
+
+//load word
 void instr_handler_LW(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Set address to Register Contents A + immiate
 	(*EX_MEM).ALUOutput = (*ID_EX).A + (*ID_EX).imm;
 	(*EX_MEM).Control = LOAD_TYPE;
 	(*EX_MEM).num_bytes = WORD;
 }
 
+
+//store byte
 void instr_handler_SB(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Set address to Register Contents A + immiate
 	(*EX_MEM).ALUOutput = (*ID_EX).A + (*ID_EX).imm;
 	(*EX_MEM).Control = STORE_TYPE;
 	(*EX_MEM).num_bytes = BYTE;
 }
 
+
+//store halfword
 void instr_handler_SH(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Set address to Register Contents A + immiate
 	(*EX_MEM).ALUOutput = (*ID_EX).A + (*ID_EX).imm;
 	(*EX_MEM).Control = STORE_TYPE;
 	(*EX_MEM).num_bytes = HALF_WORD;
 }
 
+
+//store word
 void instr_handler_SW(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 {
+	// Set address to Register Contents A + immiate
 	(*EX_MEM).ALUOutput = (*ID_EX).A + (*ID_EX).imm;
 	(*EX_MEM).Control = STORE_TYPE;
 	(*EX_MEM).num_bytes = WORD;
@@ -436,6 +537,8 @@ void instr_handler_SW(CPU_Pipeline_Reg* ID_EX, CPU_Pipeline_Reg* EX_MEM)
 mips_instr_t opcode_0x00_table[0x2A + 1] =
 
 {
+
+			// Name			type	OCode	FCode	Makeup			FPtr	                SubTable
 
 	[0x00] = { "SLL",		R_TYPE, 0x00,	0x00,	{RD, RT, SA},	&instr_handler_SLL,		NULL },
 	[0x02] = { "SRL",		R_TYPE, 0x00,	0x02,	{RD, RT, SA},	&instr_handler_SRL,		NULL },
@@ -469,6 +572,8 @@ mips_instr_t opcode_0x01_table[2] =
 
 {
 
+			// Name			type	OCode	FCode	Makeup			FPtr					SubTable
+
 	[0x00] = { "BLTZ",		I_TYPE,	0x01,	0x00,	{RS, IMM},	&instr_handler_BLTZ,	NULL },
 	[0x01] = { "BGEZ",		I_TYPE, 0x01,	0x00,	{RS, IMM},	&instr_handler_BGEZ,	NULL }
 
@@ -481,6 +586,8 @@ mips_instr_t opcode_0x01_table[2] =
 mips_instr_t mips_instr_lookup[0x2B + 1] =
 
 {
+
+			//  Name		type	OCode	FCode	Makeup				FunctPtr					SubTable
 
 	[0x00] = { "XXXX",		M_TYPE,	0x00,	0x00,	{ },	NULL,				opcode_0x00_table },
 	[0x01] = { "XXXX",		M_TYPE,	0x01,	0x00,	{ },		NULL,			opcode_0x01_table },

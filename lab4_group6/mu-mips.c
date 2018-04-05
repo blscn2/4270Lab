@@ -351,16 +351,17 @@ void WB()
 		switch(MEM_WB.Control){
 			case LOAD_TYPE:
 				NEXT_STATE.REGS[GET_RT( MEM_WB.IR )] = MEM_WB.LMD;	
+				break;
+			case STORE_TYPE: 						
 			break;
-
 			case REGISTER_TYPE: 
 				switch(MEM_WB.instr_data.type){
 					case R_TYPE: 
 						NEXT_STATE.REGS[GET_RD( MEM_WB.IR )] = MEM_WB.ALUOutput; 	
-					break;
+						break;
 					case I_TYPE: 
 						NEXT_STATE.REGS[GET_RT( MEM_WB.IR )] = MEM_WB.ALUOutput; 
-					break;
+						break;
 					default:							 					
 					break;
 				}
@@ -387,7 +388,6 @@ void MEM()
 {
 	/*IMPLEMENT THIS*/
 	if(EX_MEM.IR != 0 ){
-		//copy values to next phase
 		MEM_WB = EX_MEM;
 		MEM_WB.IR = EX_MEM.IR;
 		MEM_WB.A = EX_MEM.A;
@@ -398,40 +398,39 @@ void MEM()
 		MEM_WB.Control = EX_MEM.Control;
 		MEM_WB.instr_data = EX_MEM.instr_data;
 
-		//access mem by type
+		// Write new values dependent upon control type
 		switch(EX_MEM.Control){
 			case LOAD_TYPE: 	
 				switch(MEM_WB.num_bytes){					
 					case BYTE:
 						MEM_WB.LMD = 0x00FF & mem_read_32(EX_MEM.ALUOutput);	
-					break;
+						break;
 					case HALF_WORD:
 						MEM_WB.LMD = 0xFFFF & mem_read_32(EX_MEM.ALUOutput);	
-					break;
+						break;
 					case WORD:		
 						MEM_WB.LMD = mem_read_32(EX_MEM.ALUOutput);				
-					break;
+						break;
 					default: 											
-					break;
+						break;
 				}(*( EX_MEM.instr_data.funct ))( &ID_EX, &EX_MEM );
 				break;
 			case STORE_TYPE: 	
 				switch(EX_MEM.num_bytes){
 					case BYTE:		
 						mem_write_32(EX_MEM.ALUOutput, 0x00FF & EX_MEM.B); 		
-					break;
+						break;
 					case HALF_WORD: 
 						mem_write_32(EX_MEM.ALUOutput, 0xFFFF & EX_MEM.B); 		
-					break;			
+						break;			
 					case WORD: 		
 						mem_write_32(EX_MEM.ALUOutput, EX_MEM.B); 				
-					break;
+						break;
 					default: 												
 					break;				
 				}
 				break;
-			default:
-			break;
+			default:					/*	Do nothing	*/	break;
 		}
 	}
 	
@@ -467,23 +466,24 @@ void ID()
 {
 	/*IMPLEMENT THIS*/
 	if(IF_ID.IR != 0){
-	uint8_t rs, rt;
-	int16_t imm;
+		uint8_t rs, rt;
+		int16_t imm;
 		
-	// find register values
-	rs = GET_RS( IF_ID.IR );
-	rt = GET_RT( IF_ID.IR );
-	imm = GET_IMM( IF_ID.IR );
+		// Get new values for struct
+		rs = GET_RS( IF_ID.IR );
+		rt = GET_RT( IF_ID.IR );
+		imm = GET_IMM( IF_ID.IR );
+        
+		// Write new values in struct
         ID_EX.instr_data = mips_instr_decode( IF_ID.IR );
             
                 
         //Check for data hazards
-	if(!ENABLE_FORWARDING)		
+		if(!ENABLE_FORWARDING)		
         	STALL = checkDataHazard();
-	else
-		STALL = checkForward();
+		else
+			STALL = checkForward();
 
-	// check if stall is necessary
         if( !STALL )
         {
             // Pass on values
@@ -493,48 +493,48 @@ void ID()
 			switch(IF_ID.FORWARDA){
             			case 0: 	
 					ID_EX.A = CURRENT_STATE.REGS[rs];	
-				break;
+					break;
 				case 1:		
 					ID_EX.A = EX_MEM.ALUOutput;			
-				break;
+					break;
 				case 2:		
 					ID_EX.A = EX_MEM.ALUOutput2;		
-				break;
+					break;
 				case 3:		
 					ID_EX.A = MEM_WB.ALUOutput;			
-				break;
+					break;
 				case 4:
 					ID_EX.A = MEM_WB.ALUOutput2;		
-				break;	
+					break;	
 				case 5:		
 					ID_EX.A = MEM_WB.LMD;				
-				break;							
+					break;							
 				default:	
 					printf("Error forwarding\n");		
-				break;
+					break;
 			}
 			switch(IF_ID.FORWARDB){
             			case 0: 	
 					ID_EX.B = CURRENT_STATE.REGS[rt];
-				break;
+					break;
 				case 1:		
 					ID_EX.B = EX_MEM.ALUOutput;			
-				break;
+					break;
 				case 2:		
 					ID_EX.B = EX_MEM.ALUOutput2;		
-				break;
+					break;
 				case 3:		
 					ID_EX.B = MEM_WB.ALUOutput;			
-				break;
+					break;
 				case 4:		
 					ID_EX.B = MEM_WB.ALUOutput2;		
-				break;	
+					break;	
 				case 5:		
 					ID_EX.B = MEM_WB.LMD;				
-				break;							
+					break;							
 				default:	
 					printf("Error forwarding \n");		
-				break;
+					break;
 			}
             ID_EX.imm = (int32_t)imm;
         }
