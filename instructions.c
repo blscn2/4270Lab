@@ -120,8 +120,8 @@ mips_instr_t mips_instr_decode( uint32_t instr )
 	
 	if( opcode == 0 )
 	{
-		//funct_code = GET_FUNCTCODE( instr );
-		//instr_info = mips_instr_lookup[opcode].subtable[funct_code];
+		funct_code = GET_FUNCTCODE( instr );
+		instr_info = mips_instr_lookup[opcode].subtable[funct_code];
 	}
 	else if( opcode == 1 )
 	{
