@@ -405,6 +405,13 @@ void MEM()
 {
 	/*IMPLEMENT THIS*/
 	if(EX_MEM.IR != 0 ){
+
+
+		//To simulate non-cache 
+		// 7078 for no cache example
+		CYCLE_COUNT += 99;
+
+
 		//copy values to next phase
 		MEM_WB = EX_MEM;
 		MEM_WB.IR = EX_MEM.IR;
@@ -917,6 +924,8 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
+	cache_misses = 0;
+	cache_hits = 0;
 	ENABLE_FORWARDING = 0;
 	strcpy(prog_file, argv[1]);
 	initialize();
