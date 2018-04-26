@@ -1,1 +1,2 @@
-gcc mu-mips.c instructions.c -o mumipsout
+all:
+	gcc mu-mips.c instructions.c -o mumipsout

@@ -114,4 +114,14 @@ void instr_handler_SW();
 void setJump();
 uint8_t checkBranch(uint8_t op, uint8_t func);
 
+
+//Declarations
+
+void LoadCache(uint32_t address);
+uint8_t CheckInCache(uint32_t address);
+uint32_t GetCacheValue(uint32_t address);
+void SetCacheValue(uint32_t address, uint32_t value);
+void HandleLoadCache();
+void HandleStoreCache();
+
 #endif // ! INSTRUCTIONS_H

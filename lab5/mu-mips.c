@@ -425,7 +425,8 @@ void MEM()
 
 		//access mem by type
 		switch(EX_MEM.Control){
-			case LOAD_TYPE: 	
+			case LOAD_TYPE: 
+				/*	
 				switch(MEM_WB.num_bytes){					
 					case BYTE:
 						MEM_WB.LMD = 0x00FF & mem_read_32(EX_MEM.ALUOutput);	
@@ -439,8 +440,12 @@ void MEM()
 					default: 											
 					break;
 				}//(*( EX_MEM.instr_data.funct ))( &ID_EX, &EX_MEM );
+				*/
+				//Handle load type instruction cache here
+				
 				break;
-			case STORE_TYPE: 	
+			case STORE_TYPE: 
+				/*	
 				switch(EX_MEM.num_bytes){
 					case BYTE:		
 						mem_write_32(EX_MEM.ALUOutput, 0x00FF & EX_MEM.B); 		
@@ -454,6 +459,8 @@ void MEM()
 					default: 												
 					break;				
 				}
+				*/
+				//Handle store type instruction cache here
 				break;
 			case REGISTER_TYPE:
 			case SPECIAL_REGISTER_TYPE:

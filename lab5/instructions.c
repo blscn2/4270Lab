@@ -3,7 +3,6 @@
 
 #include "instructions.h"
 #include "mu-mips.h"
-#include "mu-cache.h"
 
 
 /************************************************************/
